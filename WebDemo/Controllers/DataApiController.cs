@@ -17,6 +17,8 @@ namespace WebDemo.Controllers
             _dataApi.Register(typeof(TestViewModel));
 
         }
+        public static DataApi GetRegisteredDataApi() {  return _dataApi; }
+
         // GET: DataApi
         public void Index(string dataApiRegisteredName, string id = null)
         {

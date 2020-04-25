@@ -1,0 +1,19 @@
+4:     public abstract class AsyncHelperBase : ENV.AsyncHelperBase 
+---------------------------------------------------^  The type or namespace name 'AsyncHelperBase' does not exist in the namespace 'ENV' (are you missing an assembly reference?) [D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\NorthwindInterfaces.csproj]
+D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\AsyncHelperBase.cs:line 4 
+
+8:         void Run(TextParameter ppi_CustomerID = null);
+--------------------^  The type or namespace name 'TextParameter' could not be found (are you missing a using directive or an assembly reference?) [D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\NorthwindInterfaces.csproj]
+D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\Customers\IShowCustomers.cs:line 8 (P#3)
+
+8:         void Run(NumberParameter ppi_ProdID = null);
+--------------------^  The type or namespace name 'NumberParameter' could not be found (are you missing a using directive or an assembly reference?) [D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\NorthwindInterfaces.csproj]
+D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\Products\IShowProducts.cs:line 8 (P#4)
+
+Total build time: 00:00:02
+========================
+Total errors: 3
+========================
+
+Projects:
+D:\code\firefly\Web Stuff\ENV.Web\NorthwindInterfaces\NorthwindInterfaces.csproj

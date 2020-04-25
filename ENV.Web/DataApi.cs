@@ -21,7 +21,8 @@ namespace ENV.Web
         bool PrgnameTypeRequest { get; set; }
         public bool DisableDocumentation { get; set; }
 
-        class ApiItem
+        internal IDictionary<string, ApiItem> GetControllers() { return _controllers; }
+        internal class ApiItem
         {
 
             public string Name;
@@ -89,6 +90,7 @@ namespace ENV.Web
         {
             ProcessRequest(name, id, new HttpContextBridgeToIHttpContext(HttpContext.Current, PostOnly, HttpMethodParamName));
         }
+
         void ProcessRequest(string name, string id, IMyHttpContext context)
         {
             var Request = context.Request;
@@ -237,94 +239,106 @@ namespace ENV.Web
                 {
                     if (DisableDocumentation)
                         return;
-                    ResponseIsHtml(Response);
-                    Response.Write(HTMLISerializedObjectWriter.HTMLPageHeader);
-                    Response.Write("<div class=\"container\">");
-                    Response.Write($"<h1>{Request.Path} Documentation</h1>");
-                    foreach (var item in _controllers.Values)
+                    WriteUsageDocs(Request, Response);
+
+                }
+            }
+            finally
+            {
+
+            }
+        }
+       
+        private void WriteUsageDocs(WebRequest Request, WebResponse Response)
+        {
+            ResponseIsHtml(Response);
+            Response.Write(HTMLISerializedObjectWriter.HTMLPageHeader);
+            Response.Write("<div class=\"container\">");
+            Response.Write($"<h1>{Request.Path} Documentation</h1>");
+            foreach (var item in _controllers.Values)
+            {
+
+                Response.Write("<h2>" + item.Name + "</h2>");
+                string url = Request.Path;
+                if (PrgnameTypeRequest)
+                {
+                    url = Request.RawUrl + "&" + ApiParameterName + "=" + item.Name;
+                }
+                else
+                {
+                    if (!url.EndsWith("/"))
+                        url += "/";
+                    url += item.Name;
+                }
+                var sw = new StringBuilder();
+                void x(string linkName, string linkResponseType)
+                {
+                    var linkUrl = url;
+                    if (!string.IsNullOrEmpty(linkResponseType))
                     {
-
-                        Response.Write("<h2>" + item.Name + "</h2>");
-                        string url = Request.Path;
-                        if (PrgnameTypeRequest)
-                        {
-                            url = Request.RawUrl + "&" + ApiParameterName + "=" + item.Name;
-                        }
+                        if (linkUrl.Contains("?"))
+                            linkUrl += "&";
                         else
+                            linkUrl += "?";
+                        linkUrl += "_response=" + linkResponseType;
+                    }
+                    if (sw.Length != 0)
+                        sw.Append(" | ");
+                    sw.Append($"<a href=\"{linkUrl}\">{linkName}</a> ");
+                };
+                x("JSON", "");
+                x("XML", "xml");
+                x("CSV", "csv");
+                x("HTML", "html");
+
+                Response.Write(sw.ToString());
+
+
+                try
+                {
+                    var c = item.Create();
+
+
+
+                    var dl = new DataList();
+                    void addLine(string action, bool dontNeedId = false)
+                    {
+                        var i = dl.AddItem();
+                        i.Set("HTTP Method", action);
+                        i.Set("URL", url +
+                            (dontNeedId ? "" : (this.PrgnameTypeRequest ? "&" + IdParameterName + "={id}" : "/{id}")) +
+                            (!string.IsNullOrEmpty(HttpMethodParamName) ? "&" + HttpMethodParamName + "=" + action : ""));
+
+                    }
+                    if (c.AllowRead)
+                        addLine("GET", true);
+                    if (c.AllowInsert)
+                        addLine("POST", true);
+                    if (c.AllowRead)
+                        addLine("GET");
+                    if (c.AllowUpdate)
+                        addLine("PUT");
+                    if (c.AllowDelete)
+                        addLine("DELETE");
+
+                    string api = dl.ToHTML();
+
+
+
+                    dl = new DataList();
+                    c.ProvideMembersTo(dl);
+                    string bodyParameters = dl.ToHTML();
+
+                    string getCodeSnippet(Action<System.IO.TextWriter> method)
+                    {
+                        using (var tw = new System.IO.StringWriter())
                         {
-                            if (!url.EndsWith("/"))
-                                url += "/";
-                            url += item.Name;
+                            method(tw);
+                            return ENV.UserMethods.Instance.XMLVal(tw.ToString());
                         }
-                        var sw = new StringBuilder();
-                        void x(string linkName, string linkResponseType)
-                        {
-                            var linkUrl = url;
-                            if (!string.IsNullOrEmpty(linkResponseType))
-                            {
-                                if (linkUrl.Contains("?"))
-                                    linkUrl += "&";
-                                else
-                                    linkUrl += "?";
-                                linkUrl += "_response=" + linkResponseType;
-                            }
-                            if (sw.Length != 0)
-                                sw.Append(" | ");
-                            sw.Append($"<a href=\"{linkUrl}\">{linkName}</a> ");
-                        };
-                        x("JSON", "");
-                        x("XML", "xml");
-                        x("CSV", "csv");
-                        x("HTML", "html");
+                    }
 
-                        Response.Write(sw.ToString());
-
-
-                        try
-                        {
-                            var c = item.Create();
-
-
-
-                            var dl = new DataList();
-                            void addLine(string action, bool dontNeedId = false)
-                            {
-                                var i = dl.AddItem();
-                                i.Set("HTTP Method", action);
-                                i.Set("URL", url +
-                                    (dontNeedId ? "" : (this.PrgnameTypeRequest ? "&" + IdParameterName + "={id}" : "/{id}")) +
-                                    (!string.IsNullOrEmpty(HttpMethodParamName) ? "&" + HttpMethodParamName + "=" + action : ""));
-
-                            }
-                            if (c.AllowRead)
-                                addLine("GET", true);
-                            if (c.AllowInsert)
-                                addLine("POST", true);
-                            if (c.AllowRead)
-                                addLine("GET");
-                            if (c.AllowUpdate)
-                                addLine("PUT");
-                            if (c.AllowDelete)
-                                addLine("DELETE");
-
-                            string api = dl.ToHTML();
-
-
-
-                            dl = new DataList();
-                            c.ProvideMembersTo(dl);
-                            string bodyParameters = dl.ToHTML();
-
-                            string getCodeSnippet(Action<System.IO.TextWriter> method)
-                            {
-                                using (var tw = new System.IO.StringWriter())
-                                {
-                                    method(tw);
-                                    return ENV.UserMethods.Instance.XMLVal(tw.ToString());
-                                }
-                            }
-
-                            Response.Write($@"
+                    Response.Write($@"
 <div>
 
   <!-- Nav tabs -->
@@ -340,7 +354,7 @@ namespace ENV.Web
   <div class=""tab-content"">
     <div role=""tabpanel"" class=""tab-pane active"" id=""{item.Name}_api"">{ api}</div>
     <div role=""tabpanel"" class=""tab-pane"" id=""{item.Name}_parameters"">{bodyParameters}</div>
-    <div role=""tabpanel"" class=""tab-pane"" id=""{item.Name}_interface""><pre>{getCodeSnippet(tw => c.CreateTypeScriptRemultClass(tw, item.Name))}</pre><a href=""{url+ "?_response=remult"}"">download</a></div>
+    <div role=""tabpanel"" class=""tab-pane"" id=""{item.Name}_interface""><pre>{getCodeSnippet(tw => c.CreateTypeScriptRemultClass(tw, item.Name))}</pre><a href=""{url + "?_response=remult"}"">download</a></div>
     <div role=""tabpanel"" class=""tab-pane"" id=""{item.Name}_settings""><pre>{getCodeSnippet(tw => c.CreateTypeScriptInterface(tw, item.Name, url))}</pre></div>
     <div role=""tabpanel"" class=""tab-pane"" id=""{item.Name}_keys""><pre>{getCodeSnippet(c.ColumnKeys)}</pre></div>
   </div>
@@ -348,26 +362,20 @@ namespace ENV.Web
 </div>
 ");
 
-                        }
-                        catch (Exception ex)
-                        {
-                            Response.Write("Error: " + ex.Message);
-                        }
-
-                    }
-
-                    Response.Write(optionalUrlParametersHtmlDoc);
-                    Response.Write("</div>");
-                    Response.Write(@"<script>" + StoredStuff.JQuery + @"</script>");
-                    Response.Write(@"<script >" + StoredStuff.BootstrapJs + "</script>");
-
                 }
-            }
-            finally
-            {
+                catch (Exception ex)
+                {
+                    Response.Write("Error: " + ex.Message);
+                }
 
             }
+
+            Response.Write(optionalUrlParametersHtmlDoc);
+            Response.Write("</div>");
+            Response.Write(@"<script>" + StoredStuff.JQuery + @"</script>");
+            Response.Write(@"<script >" + StoredStuff.BootstrapJs + "</script>");
         }
+
         private static void PerformInsertOrUpdate(WebResponse Response, WebRequest Request, ViewModel vmc, bool allowed, string name, Func<DataItem, DataItem> action)
         {
             PerformInsertOrUpdateOrDelete(Response, vmc, allowed, name, () =>

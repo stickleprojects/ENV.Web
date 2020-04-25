@@ -1,4 +1,7 @@
 ﻿using ENV.Web;
+using JWT;
+using JWT.Algorithms;
+using JWT.Serializers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +23,27 @@ namespace WebDemo.Controllers
 
             return View();
         }
-    
+
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
 
             return View();
+        }
+        [ENV.Web.PrintToPDF]
+        public void Print(int id)
+        {
+            new Northwind.Orders.Print_Order().Run(id);
+        }
+        public string DoSomething()
+        {
+            return "Hello World " + ENV.Security.UserManager.CurrentUser.Name;
+        }
+
+        public ActionResult Login(string userName)
+        {
+            var payload = new JwtUserInfo(userName, "Admin", "Login");
+            return Json(new { token = MvcApplication.Jwt.GetToken(payload) });
         }
     }
 }
