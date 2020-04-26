@@ -88,7 +88,7 @@ namespace ENV.Web
                         //
                         c.SupportedSubmitMethods("GET", "HEAD");
                         c.InjectStylesheet(thisAssembly, "ENV.Web.Swagger.swagger-ui-custom.css");
-                        // Use the CustomAsset option to provide your own version of assets used in the swagger-ui.
+                         // Use the CustomAsset option to provide your own version of assets used in the swagger-ui.
                         // It's typically used to instruct Swashbuckle to return your version instead of the default
                         // when a request is made for "index.html". As with all custom content, the file must be included
                         // in your project as an "Embedded Resource", and then the resource's "Logical Name" is passed to
