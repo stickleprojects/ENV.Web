@@ -10,37 +10,6 @@
                 "$tsc-watch"
             ],
             "isBackground": true
-        },
-        {
-            "label": "generate component",
-            "type":"shell",
-            "command":"ng",
-            "args":[
-                "g",
-                "component",
-                "--skipTests=true",
-                "${input:componentName}"
-            ],
-            "problemMatcher":[]
-        },
-        {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": [
-                "$tsc"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "copyFilesToMVC",
-            "problemMatcher": [
-                "$tsc"
-            ]
         }
-    ],
-    "inputs": [{
-        "id":"componentName",
-        "description": "please select component name",
-        "type": "promptString"
-    }]
+    ]
 }
