@@ -14,6 +14,8 @@ namespace WebDemo.Controllers
         {
             
             _dataApi.Register(typeof(Northwind.Models.Categories), true);
+            _dataApi.Register(typeof(Northwind.Models.Customers), true);
+            _dataApi.Register(typeof(Northwind.Models.Products), true);
             _dataApi.Register(typeof(TestViewModel));
 
         }

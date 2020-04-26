@@ -1,0 +1,15 @@
+﻿
+
+/*Some code stop neaten the display of the external docs */
+#api_info > p {
+    font-size: small;
+    display:inline;
+}
+#api_info > a {
+    font-size: small;
+   padding-bottom: 10px;
+   display:inline-block;
+
+}
+
+    
